@@ -1,15 +1,12 @@
 """
 SISTEMA DIGITAL DH PROYECTOS Y CONTRATISTAS S.A.C. - BLUESYNC
 Nivel: Fundamentos de Programación (2do Ciclo)
-Código Base para Trabajo Colaborativo en Grupo (5 Funciones Pendientes)
 """
 from datetime import datetime
 import os
-
 NOMBRE_ARCHIVO = "comprobantes_dhproyectos.txt"
 # Catálogos base del sistema
 PRECIO_CONSTRUCCION = {"Básico": 900.0, "Premium": 1200.0}
-
 PRECIO_MANO_OBRA = {
     "1": {"nombre": "Cuadrilla Bási-k (3 personas)", "costo_dia": 150.0},
     "2": {"nombre": "Cuadrilla Estándar (5 personas)", "costo_dia": 250.0},
@@ -17,23 +14,19 @@ PRECIO_MANO_OBRA = {
 }
 
 PRECIO_MANTENIMIENTO = {"Tarifa Hora": 50.0, "Kit Quimicos": 80.0}
-
 CATALOGO_MATERIALES = {
     "1": {"nombre": "Bomba Centrífuga 2HP", "precio": 450.0, "stock": 5},
     "2": {"nombre": "Filtro Cilíndrico Industrial", "precio": 120.0, "stock": 12},
     "3": {"nombre": "Válvula de Comporta 1/2", "precio": 85.0, "stock": 8},
     "4": {"nombre": "Tubería de Cobre 3/4", "precio": 110.0, "stock": 15}
 }
-
+# ==========================================
+# 1. VALIDACIONES Y CAPTURA DE DATOS DEL CLIENTE
+# ==========================================
 def obtener_fecha_hora():
     ahora = datetime.now()
     return ahora.strftime("%Y-%m-%d"), ahora.strftime("%H:%M:%S")
 
-# ==========================================
-# 5 FUNCIONES PENDIENTES DE IMPLEMENTAR
-# ==========================================
-
-# --- piero (2 Funciones) ---
 def capturar_datos_cliente():
     print("\n--- DATOS DEL CLIENTE ---")
 
@@ -71,6 +64,78 @@ def capturar_datos_cliente():
         while not (documento.isdigit() and len(documento) == 8):
             documento = input("  [Error] Ingrese un DNI válido (8 dígitos): ").strip()
     return cliente, telefono, correo, tipo_comp, documento
+# ==========================================
+# 2. PERSISTENCIA DE DATOS (ARCHIVOS)
+# ==========================================
+def cargar_comprobantes():
+    comprobantes = []
+    if not os.path.exists(NOMBRE_ARCHIVO):
+        return comprobantes
+
+    with open(NOMBRE_ARCHIVO, "r", encoding="utf-8") as archivo:
+        for linea in archivo:
+            c = linea.strip().split("|")
+            if len(c) == 9:
+                comprobantes.append({
+                    "nro_comp": c[0], "tipo_comp": c[1], "cliente": c[2],
+                    "documento": c[3], "telefono": c[4], "servicio": c[5],
+                    "monto": float(c[6]), "fecha": c[7], "hora": c[8]
+                })
+    return comprobantes
+
+def guardar_comprobantes(comprobantes):
+    with open(NOMBRE_ARCHIVO, "w", encoding="utf-8") as archivo:
+        for c in comprobantes:
+            linea = f"{c['nro_comp']}|{c['tipo_comp']}|{c['cliente']}|{c['documento']}|{c['telefono']}|{c['servicio']}|{c['monto']:.2f}|{c['fecha']}|{c['hora']}\n"
+            archivo.write(linea)
+# ==========================================
+# 3. SERVICIOS DEL SISTEMA
+# ==========================================
+def servicio_construccion(comprobantes):
+    print("\n==================================================")
+    print("      1. SERVICIO DE CONSTRUCCIÓN DE PISCINAS      ")
+    print("==================================================")
+    cliente, telefono, correo, tipo_comp, documento = capturar_datos_cliente()
+
+    print("\n--- REQUERIMIENTOS DEL SERVICIO ---")
+    largo = float(input("Largo (m): "))
+    ancho = float(input("Ancho (m): "))
+    area = largo * ancho
+
+    print("\nSeleccione Tipo de Acabado:")
+    print(f"1. Básico (S/ {PRECIO_CONSTRUCCION['Básico']:.2f} x m²)")
+    print(f"2. Premium (S/ {PRECIO_CONSTRUCCION['Premium']:.2f} x m²)")
+    opc_acabado = input("Opción (1-2): ").strip()
+
+    acabado_nombre = "Premium" if opc_acabado == "2" else "Básico"
+    costo_material = area * PRECIO_CONSTRUCCION[acabado_nombre]
+
+    print("\n--- SELECCIÓN DE MANO DE OBRA ---")
+    for k, v in PRECIO_MANO_OBRA.items():
+        print(f"{k}. {v['nombre']} - S/ {v['costo_dia']:.2f} por día")
+
+    opc_mo = input("Seleccione cuadrilla (1-3): ").strip()
+    while opc_mo not in ["1", "2", "3"]:
+        opc_mo = input("  [Error] Ingrese opción 1, 2 o 3: ").strip()
+
+    cuadrilla = PRECIO_MANO_OBRA[opc_mo]
+    dias = int(input("Días estimados de construcción: "))
+    costo_mo = cuadrilla["costo_dia"] * dias
+
+    monto_total = costo_material + costo_mo
+    fecha, hora = obtener_fecha_hora()
+    nro_comp = f"B001-{len(comprobantes)+1:06d}"
+    detalle = f"Construcción {acabado_nombre} ({area:.1f}m²)"
+
+    nuevo = {
+        "nro_comp": nro_comp, "tipo_comp": tipo_comp, "cliente": cliente,
+        "documento": documento, "telefono": telefono, "servicio": detalle,
+        "monto": monto_total, "fecha": fecha, "hora": hora
+    }
+    comprobantes.append(nuevo)
+    guardar_comprobantes(comprobantes)
+    print(f"\n[Éxito] Comprobante {nro_comp} generado el {fecha} a las {hora}")
+    print(f"        Total a pagar: S/ {monto_total:,.2f}")
 
 def servicio_mantenimiento(comprobantes):
     print("\n==================================================")
@@ -100,27 +165,60 @@ def servicio_mantenimiento(comprobantes):
     print(f"\n[Éxito] Comprobante {nro_comp} generado el {fecha} a las {hora}")
     print(f"        Total a pagar: S/ {monto_total:,.2f}")
 
-# --- franklin (2 Funciones) ---
-def buscar_comprobantes(comprobantes):
-    print("\n--------------------------------------------------")
-    print("         BUSCADOR DE COMPROBANTES EMITIDOS        ")
-    print("--------------------------------------------------")
-    doc_buscar = input("Ingrese DNI o RUC a buscar: ").strip()
-    encontrados = False
-    for c in comprobantes:
-        if c["documento"] == doc_buscar:
-            encontrados = True
-            #impresion de los comprobantes encontrados
-            print("=" * 50)
-            print(f" Nro:     {c['nro_comp']} ({c['tipo_comp']})")
-            print(f" Fecha:   {c['fecha']} - {c['hora']}")
-            print(f" Cliente: {c['cliente']} | Doc: {c['documento']}")
-            print(f" Detalle: {c['servicio']}")
-            print(f" Monto:   S/ {c['monto']:,.2f}")
-            print("=" * 50)
-    if not encontrados:
-        print(f"  [Aviso] No hay registros para '{doc_buscar}'.")
 
+def servicio_suministro(comprobantes):
+    print("\n==================================================")
+    print("      3. SERVICIO DE SUMINISTRO DE MATERIALES     ")
+    print("==================================================")
+    cliente, telefono, correo, tipo_comp, documento = capturar_datos_cliente()
+
+    print("\n--- CATÁLOGO DE MATERIALES ---")
+    for k, v in CATALOGO_MATERIALES.items():
+        print(f"{k}. {v['nombre']} - S/ {v['precio']:.2f} (Stock: {v['stock']})")
+
+    monto_total = 0.0
+    items_comprados = []
+    ##empieza a comprar los sumistros
+    while True:
+        sel = input("\nSeleccione producto a comprar (0 para finalizar): ").strip()
+        if sel == "0":
+            break
+
+        if sel in CATALOGO_MATERIALES:
+            prod = CATALOGO_MATERIALES[sel]
+            if prod["stock"] <= 0:
+                print("  [Aviso] Producto sin stock disponible.")
+                continue
+
+            cant = int(input(f"Cantidad para '{prod['nombre']}': "))
+            if cant > prod["stock"]:
+                print(f"  [Error] Solo quedan {prod['stock']} unidades.")
+                continue
+
+            prod["stock"] -= cant
+            subtotal = cant * prod["precio"]
+            monto_total += subtotal
+            items_comprados.append(f"{cant}x {prod['nombre']}")
+            print(f"  -> Añadido: Subtotal S/ {subtotal:.2f}")
+        else:
+            print("  [Error] Opción no válida.")
+##cosas compradas
+    if monto_total > 0:
+        fecha, hora = obtener_fecha_hora()
+        nro_comp = f"B001-{len(comprobantes)+1:06d}"
+        detalle = "Suministro: " + ", ".join(items_comprados)
+        nuevo = {
+            "nro_comp": nro_comp, "tipo_comp": tipo_comp, "cliente": cliente,
+            "documento": documento, "telefono": telefono, "servicio": detalle,
+            "monto": monto_total, "fecha": fecha, "hora": hora
+        }
+        comprobantes.append(nuevo)
+        guardar_comprobantes(comprobantes)
+        print(f"\n[Éxito] Comprobante {nro_comp} generado el {fecha} a las {hora}")
+        print(f"        Total a pagar: S/ {monto_total:,.2f}")
+# ==========================================
+# 4. CONFIGURACIÓN DE PRECIOS SIMPLIFICADA
+# ==========================================
 def configurar_catalogos():
     print("\n--------------------------------------------------")
     print("       GESTOR DE PRECIOS DEL SISTEMA              ")
@@ -144,80 +242,59 @@ def configurar_catalogos():
         nuevo_p = float(input("Nuevo precio Kit de Químicos: S/ "))
         PRECIO_MANTENIMIENTO["Kit Quimicos"] = nuevo_p
         print("  [Éxito] Precio actualizado.")
-
-# --- valentino  (1 Función / Persistencia) ---
-def cargar_comprobantes():
-    comprobantes = []
-    if not os.path.exists(NOMBRE_ARCHIVO):
-        return comprobantes
-
-    with open(NOMBRE_ARCHIVO, "r", encoding="utf-8") as archivo:
-        for linea in archivo:
-            c = linea.strip().split("|")
-            if len(c) == 9:
-                comprobantes.append({
-                    "nro_comp": c[0], "tipo_comp": c[1], "cliente": c[2],
-                    "documento": c[3], "telefono": c[4], "servicio": c[5],
-                    "monto": float(c[6]), "fecha": c[7], "hora": c[8]
-                })
-    return comprobantes
-
-def guardar_comprobantes(comprobantes):
-    with open(NOMBRE_ARCHIVO, "w", encoding="utf-8") as archivo:
-        for c in comprobantes:
-            linea = f"{c['nro_comp']}|{c['tipo_comp']}|{c['cliente']}|{c['documento']}|{c['telefono']}|{c['servicio']}|{c['monto']:.2f}|{c['fecha']}|{c['hora']}\n"
-            archivo.write(linea)
-
 # ==========================================
-# FUNCIONES YA INTEGRADAS
+# 5. BÚSQUEDA Y REPORTES FÁCILES
 # ==========================================
-def servicio_construccion(comprobantes):
-    print("\n=== SERVICIO DE CONSTRUCCIÓN ===")
-    cliente, telefono, correo, tipo_comp, documento = capturar_datos_cliente()
-    area = float(input("\nLargo (m): ")) * float(input("Ancho (m): "))
-    acabado = "Premium" if input("Acabado (1. Básico | 2. Premium): ").strip() == "2" else "Básico"
-    for k, v in PRECIO_MANO_OBRA.items(): print(f"{k}. {v['nombre']} - S/ {v['costo_dia']:.2f}/día")
-    opc = input("Cuadrilla (1-3): ").strip()
-    while opc not in PRECIO_MANO_OBRA: opc = input(" [Error] Opción 1-3: ").strip()
-    monto = (area * PRECIO_CONSTRUCCION[acabado]) + (PRECIO_MANO_OBRA[opc]["costo_dia"] * int(input("Días: ")))
-    fecha, hora = obtener_fecha_hora()
-    nro_comp = f"B001-{len(comprobantes)+1:06d}"
-    comprobantes.append({"nro_comp": nro_comp, "tipo_comp": tipo_comp, "cliente": cliente, "documento": documento, "telefono": telefono, "servicio": f"Construcción {acabado} ({area:.1f}m²)", "monto": monto, "fecha": fecha, "hora": hora})
-    guardar_comprobantes(comprobantes)
-    print(f"\n[Éxito] {nro_comp} generado | Total: S/ {monto:,.2f}")
-
-def servicio_suministro(comprobantes):
-    print("\n=== SERVICIO DE SUMINISTRO ===")
-    cliente, telefono, correo, tipo_comp, documento = capturar_datos_cliente()
-    for k, v in CATALOGO_MATERIALES.items(): print(f"{k}. {v['nombre']} - S/ {v['precio']:.2f} (Stock: {v['stock']})")
-    monto, items = 0.0, []
-    while True:
-        sel = input("\nProducto (0 para terminar): ").strip()
-        if sel == "0": break
-        if sel in CATALOGO_MATERIALES and CATALOGO_MATERIALES[sel]["stock"] > 0:
-            cant = int(input(f"Cantidad: "))
-            if cant <= CATALOGO_MATERIALES[sel]["stock"]:
-                CATALOGO_MATERIALES[sel]["stock"] -= cant
-                monto += cant * CATALOGO_MATERIALES[sel]["precio"]
-                items.append(f"{cant}x {CATALOGO_MATERIALES[sel]['nombre']}")
-            else: print(" [Error] Stock insuficiente.")
-    if monto > 0:
-        fecha, hora = obtener_fecha_hora()
-        nro_comp = f"B001-{len(comprobantes)+1:06d}"
-        comprobantes.append({"nro_comp": nro_comp, "tipo_comp": tipo_comp, "cliente": cliente, "documento": documento, "telefono": telefono, "servicio": "Suministro: " + ", ".join(items), "monto": monto, "fecha": fecha, "hora": hora})
-        guardar_comprobantes(comprobantes)
-        print(f"\n[Éxito] {nro_comp} generado | Total: S/ {monto:,.2f}")
+def buscar_comprobantes(comprobantes):
+    print("\n--------------------------------------------------")
+    print("         BUSCADOR DE COMPROBANTES EMITIDOS        ")
+    print("--------------------------------------------------")
+    doc_buscar = input("Ingrese DNI o RUC a buscar: ").strip()
+    encontrados = False
+    for c in comprobantes:
+        if c["documento"] == doc_buscar:
+            encontrados = True
+            #impresion de los comprobantes encontrados
+            print("=" * 50)
+            print(f" Nro:     {c['nro_comp']} ({c['tipo_comp']})")
+            print(f" Fecha:   {c['fecha']} - {c['hora']}")
+            print(f" Cliente: {c['cliente']} | Doc: {c['documento']}")
+            print(f" Detalle: {c['servicio']}")
+            print(f" Monto:   S/ {c['monto']:,.2f}")
+            print("=" * 50)
+    if not encontrados:
+        print(f"  [Aviso] No hay registros para '{doc_buscar}'.")
 
 def reporte_ventas(comprobantes):
-    if not comprobantes: return print("\n [Aviso] No hay ventas.")
-    filtro = input("Fecha a filtrar (AAAA-MM-DD o ENTER para todos): ").strip()
-    filtrados = [c for c in comprobantes if not filtro or c["fecha"] == filtro]
-    print("\n" + "-"*55 + f"\n{'NRO':<12} | {'FECHA':<10} | {'CLIENTE':<15} | {'MONTO':<10}\n" + "-"*55)
-    for c in filtrados: print(f"{c['nro_comp']:<12} | {c['fecha']:<10} | {c['cliente'][:15]:<15} | S/ {c['monto']:>7,.2f}")
-    print("-"*55 + f"\nTOTAL RECAUDADO: S/ {sum(c['monto'] for c in filtrados):,.2f}")
+    print("\n--------------------------------------------------")
+    print("                REPORTE DE VENTAS                 ")
+    print("--------------------------------------------------")
+    if not comprobantes:
+        print("  No hay ventas registradas.")
+        return
 
+    print("1. Ver todas las ventas")
+    print("2. Filtrar ventas por fecha (AAAA-MM-DD)")
+    opc = input("Seleccione (1-2): ").strip()
+
+    fecha_filtro = ""
+    if opc == "2":
+        fecha_filtro = input("Ingrese fecha (Ejemplo: 2026-09-28): ").strip()
+#impresion de los comprobantes, los numeros son  el ancho fijo de caracteres de las columnas
+    total_recaudado = 0.0
+    print("\n" + "-" * 60)
+    print(f"{'NRO':<12} | {'FECHA':<10} | {'CLIENTE':<15} | {'MONTO':<10}")
+    print("-" * 60)
+
+    for c in comprobantes:
+        if fecha_filtro == "" or c["fecha"] == fecha_filtro:
+            print(f"{c['nro_comp']:<12} | {c['fecha']:<10} | {c['cliente'][:15]:<15} | S/ {c['monto']:>7,.2f}")
+            total_recaudado += c["monto"]
+
+    print("-" * 60)
+    print(f"TOTAL RECAUDADO: S/ {total_recaudado:,.2f}")
 # ==========================================
-# MENÚ PRINCIPAL
+# 6. MENÚ PRINCIPAL
 # ==========================================
 def main():
     comprobantes = cargar_comprobantes()
@@ -256,6 +333,5 @@ def main():
             break
         else:
             print("  [Error] Opción no válida.")
-
 if __name__ == "__main__":
     main()
