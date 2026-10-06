@@ -7,7 +7,6 @@ from datetime import datetime
 import os
 
 NOMBRE_ARCHIVO = "comprobantes_dhproyectos.txt"
-
 # Catálogos base del sistema
 PRECIO_CONSTRUCCION = {"Básico": 900.0, "Premium": 1200.0}
 
@@ -36,9 +35,42 @@ def obtener_fecha_hora():
 
 # --- piero (2 Funciones) ---
 def capturar_datos_cliente():
-    # TODO: PENDIENTE DE IMPLEMENTACIÓN
-    print("\n[Aviso] Función capturar_datos_cliente pendiente.")
-    return "Cliente Temporal", "999999999", "correo@ejemplo.com", "Boleta", "12345678"
+    print("\n--- DATOS DEL CLIENTE ---")
+
+    # 1. Nombre completo
+    cliente = input("Nombre completo: ").strip().title()
+    while not cliente.replace(" ", "").isalpha():
+        cliente = input("  [Error] Ingrese un nombre válido (solo letras): ").strip().title()
+
+    # 2. Teléfono
+    telefono = input("Teléfono: ").strip()
+    while not (telefono.isdigit() and len(telefono) == 9):
+        telefono = input("  [Error] Ingrese un teléfono válido (9 dígitos): ").strip()
+
+    # 3. Correo electrónico
+    correo = input("Correo electrónico: ").strip().lower()
+    dominios = ("@gmail.com", "@hotmail.com", "@outlook.com", "@yahoo.com", ".com", ".pe")
+    while "@" not in correo or " " in correo or not correo.endswith(dominios):
+        correo = input("  [Error] Ingrese correo válido (@gmail.com, @hotmail.com, etc): ").strip().lower()
+
+    # 4. Tipo de Comprobante
+    print("\nTipo de Comprobante: 1. Boleta | 2. Factura")
+    tipo_sel = input("Seleccione (1-2): ").strip()
+    while tipo_sel not in ["1", "2"]:
+        tipo_sel = input("  [Error] Seleccione 1 o 2: ").strip()
+
+    tipo_comp = "Factura" if tipo_sel == "2" else "Boleta"
+
+   # 5. Documento según comprobante
+    if tipo_comp == "Factura":
+        documento = input("Ingrese RUC (11 dígitos): ").strip()
+        while not (documento.isdigit() and len(documento) == 11):
+            documento = input("  [Error] Ingrese un RUC válido (11 dígitos): ").strip()
+    else:
+        documento = input("Ingrese DNI (8 dígitos): ").strip()
+        while not (documento.isdigit() and len(documento) == 8):
+            documento = input("  [Error] Ingrese un DNI válido (8 dígitos): ").strip()
+    return cliente, telefono, correo, tipo_comp, documento
 
 def servicio_mantenimiento(comprobantes):
     # TODO: PENDIENTE DE IMPLEMENTACIÓN
