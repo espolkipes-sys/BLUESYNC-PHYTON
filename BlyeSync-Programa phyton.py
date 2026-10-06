@@ -102,8 +102,24 @@ def servicio_mantenimiento(comprobantes):
 
 # --- franklin (2 Funciones) ---
 def buscar_comprobantes(comprobantes):
-    # TODO: PENDIENTE DE IMPLEMENTACIÓN
-    print("\n[Aviso] Búsqueda de comprobantes pendiente.")
+    print("\n--------------------------------------------------")
+    print("         BUSCADOR DE COMPROBANTES EMITIDOS        ")
+    print("--------------------------------------------------")
+    doc_buscar = input("Ingrese DNI o RUC a buscar: ").strip()
+    encontrados = False
+    for c in comprobantes:
+        if c["documento"] == doc_buscar:
+            encontrados = True
+            #impresion de los comprobantes encontrados
+            print("=" * 50)
+            print(f" Nro:     {c['nro_comp']} ({c['tipo_comp']})")
+            print(f" Fecha:   {c['fecha']} - {c['hora']}")
+            print(f" Cliente: {c['cliente']} | Doc: {c['documento']}")
+            print(f" Detalle: {c['servicio']}")
+            print(f" Monto:   S/ {c['monto']:,.2f}")
+            print("=" * 50)
+    if not encontrados:
+        print(f"  [Aviso] No hay registros para '{doc_buscar}'.")
 
 def configurar_catalogos():
     # TODO: PENDIENTE DE IMPLEMENTACIÓN
