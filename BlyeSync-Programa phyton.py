@@ -73,8 +73,32 @@ def capturar_datos_cliente():
     return cliente, telefono, correo, tipo_comp, documento
 
 def servicio_mantenimiento(comprobantes):
-    # TODO: PENDIENTE DE IMPLEMENTACIÓN
-    print("\n[Aviso] Servicio de mantenimiento pendiente.")
+    print("\n==================================================")
+    print("      2. SERVICIO DE MANTENIMIENTO DE PISCINAS    ")
+    print("==================================================")
+    cliente, telefono, correo, tipo_comp, documento = capturar_datos_cliente()
+
+    print("\n--- REQUERIMIENTOS DEL SERVICIO ---")
+    horas = float(input("Horas de trabajo: "))
+    costo_base = horas * PRECIO_MANTENIMIENTO["Tarifa Hora"]
+
+    incluir = input(f"¿Incluir Kit de Químicos (S/ {PRECIO_MANTENIMIENTO['Kit Quimicos']:.2f})? (S/N): ").strip().upper()
+    costo_kit = PRECIO_MANTENIMIENTO["Kit Quimicos"] if incluir == "S" else 0.0
+
+    monto_total = costo_base + costo_kit
+    fecha, hora = obtener_fecha_hora()
+    nro_comp = f"B001-{len(comprobantes)+1:06d}"
+    detalle = f"Mantenimiento ({horas:.0f} hrs)"
+
+    nuevo = {
+        "nro_comp": nro_comp, "tipo_comp": tipo_comp, "cliente": cliente,
+        "documento": documento, "telefono": telefono, "servicio": detalle,
+        "monto": monto_total, "fecha": fecha, "hora": hora
+    }
+    comprobantes.append(nuevo)
+    guardar_comprobantes(comprobantes)
+    print(f"\n[Éxito] Comprobante {nro_comp} generado el {fecha} a las {hora}")
+    print(f"        Total a pagar: S/ {monto_total:,.2f}")
 
 # --- franklin (2 Funciones) ---
 def buscar_comprobantes(comprobantes):
