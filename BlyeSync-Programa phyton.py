@@ -163,9 +163,10 @@ def cargar_comprobantes():
     return comprobantes
 
 def guardar_comprobantes(comprobantes):
-    # TODO: PENDIENTE DE IMPLEMENTACIÓN
-    pass
-
+    with open(NOMBRE_ARCHIVO, "w", encoding="utf-8") as archivo:
+        for c in comprobantes:
+            linea = f"{c['nro_comp']}|{c['tipo_comp']}|{c['cliente']}|{c['documento']}|{c['telefono']}|{c['servicio']}|{c['monto']:.2f}|{c['fecha']}|{c['hora']}\n"
+            archivo.write(linea)
 
 # ==========================================
 # FUNCIONES YA INTEGRADAS
