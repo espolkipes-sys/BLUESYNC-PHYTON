@@ -147,9 +147,20 @@ def configurar_catalogos():
 
 # --- valentino  (1 Función / Persistencia) ---
 def cargar_comprobantes():
-    # TODO: PENDIENTE DE IMPLEMENTACIÓN
-    print("[Aviso] Carga de archivos pendiente.")
-    return []
+    comprobantes = []
+    if not os.path.exists(NOMBRE_ARCHIVO):
+        return comprobantes
+
+    with open(NOMBRE_ARCHIVO, "r", encoding="utf-8") as archivo:
+        for linea in archivo:
+            c = linea.strip().split("|")
+            if len(c) == 9:
+                comprobantes.append({
+                    "nro_comp": c[0], "tipo_comp": c[1], "cliente": c[2],
+                    "documento": c[3], "telefono": c[4], "servicio": c[5],
+                    "monto": float(c[6]), "fecha": c[7], "hora": c[8]
+                })
+    return comprobantes
 
 def guardar_comprobantes(comprobantes):
     # TODO: PENDIENTE DE IMPLEMENTACIÓN
