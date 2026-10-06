@@ -122,8 +122,28 @@ def buscar_comprobantes(comprobantes):
         print(f"  [Aviso] No hay registros para '{doc_buscar}'.")
 
 def configurar_catalogos():
-    # TODO: PENDIENTE DE IMPLEMENTACIÓN
-    print("\n[Aviso] Configuración de precios pendiente.")
+    print("\n--------------------------------------------------")
+    print("       GESTOR DE PRECIOS DEL SISTEMA              ")
+    print("--------------------------------------------------")
+    print("1. Cambiar precio acabado Básico")
+    print("2. Cambiar tarifa por hora de mantenimiento")
+    print("3. Cambiar precio Kit de Químicos")
+    print("4. Regresar")
+
+    opc = input("Seleccione (1-4): ").strip()
+
+    if opc == "1":
+        nuevo_p = float(input("Nuevo precio x m² para Acabado Básico: S/ "))
+        PRECIO_CONSTRUCCION["Básico"] = nuevo_p
+        print("  [Éxito] Precio actualizado.")
+    elif opc == "2":
+        nuevo_p = float(input("Nueva tarifa por hora: S/ "))
+        PRECIO_MANTENIMIENTO["Tarifa Hora"] = nuevo_p
+        print("  [Éxito] Tarifa actualizada.")
+    elif opc == "3":
+        nuevo_p = float(input("Nuevo precio Kit de Químicos: S/ "))
+        PRECIO_MANTENIMIENTO["Kit Quimicos"] = nuevo_p
+        print("  [Éxito] Precio actualizado.")
 
 # --- valentino  (1 Función / Persistencia) ---
 def cargar_comprobantes():
