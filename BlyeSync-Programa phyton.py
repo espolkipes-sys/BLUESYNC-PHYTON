@@ -4,7 +4,14 @@ Nivel: Fundamentos de Programación (2do Ciclo)
 """
 from datetime import datetime
 import os
-NOMBRE_ARCHIVO = "comprobantes_dhproyectos.txt"
+
+# Esto obtiene la carpeta exacta donde está guardado este archivo de Python (.py)
+DIRECTORIO_ACTUAL = os.path.dirname(os.path.abspath(__file__))
+
+# Esto construye la ruta del .txt dentro de esta misma carpeta
+NOMBRE_ARCHIVO = os.path.join(
+    DIRECTORIO_ACTUAL, "comprobantes_dhproyectos.txt"
+)
 # Catálogos base del sistema
 PRECIO_CONSTRUCCION = {"Básico": 900.0, "Premium": 1200.0}
 PRECIO_MANO_OBRA = {
@@ -67,27 +74,71 @@ def capturar_datos_cliente():
 # ==========================================
 # 2. PERSISTENCIA DE DATOS (ARCHIVOS)
 # ==========================================
-def cargar_comprobantes():
-    comprobantes = []
-    if not os.path.exists(NOMBRE_ARCHIVO):
-        return comprobantes
+def guardar_datos_archivo(comprobantes):
+    """Escribe la lista de comprobantes formateada en el archivo de texto."""
+    print("\n***************** GUARDAR COMPROBANTES EN ARCHIVO ****************")
+    print("*******************************************************************")
 
-    with open(NOMBRE_ARCHIVO, "r", encoding="utf-8") as archivo:
-        for linea in archivo:
-            c = linea.strip().split("|")
-            if len(c) == 9:
-                comprobantes.append({
-                    "nro_comp": c[0], "tipo_comp": c[1], "cliente": c[2],
-                    "documento": c[3], "telefono": c[4], "servicio": c[5],
-                    "monto": float(c[6]), "fecha": c[7], "hora": c[8]
-                })
-    return comprobantes
+    if not comprobantes:
+        print(" [Aviso] No hay comprobantes registrados para guardar.")
+        return
 
-def guardar_comprobantes(comprobantes):
     with open(NOMBRE_ARCHIVO, "w", encoding="utf-8") as archivo:
         for c in comprobantes:
             linea = f"{c['nro_comp']}|{c['tipo_comp']}|{c['cliente']}|{c['documento']}|{c['telefono']}|{c['servicio']}|{c['monto']:.2f}|{c['fecha']}|{c['hora']}\n"
             archivo.write(linea)
+
+    print(
+        f" [Éxito] {len(comprobantes)} comprobante(s) guardado(s) correctamente."
+    )
+
+def leer_datos_archivo():
+    """Lee el archivo plano usando split('|') y muestra los registros en pantalla."""
+    print("\n***************** LEER DATOS DESDE ARCHIVO ****************")
+    print("***********************************************************")
+
+    if not os.path.exists(NOMBRE_ARCHIVO):
+        print(" [Aviso] El archivo no existe todavía.")
+        return
+
+    with open(NOMBRE_ARCHIVO, "r", encoding="utf-8") as archivo:
+        print(
+            f"{'NRO':<12} | {'TIPO':<8} | {'CLIENTE':<15} | {'DOC':<11} | {'MONTO':<10}"
+        )
+        print("-" * 65)
+
+        for linea in archivo:
+            datos = linea.strip().split("|")
+            if len(datos) == 9:
+                print(
+                    f"{datos[0]:<12} | {datos[1]:<8} | {datos[2][:15]:<15} | {datos[3]:<11} | S/ {datos[6]:>7}"
+                )
+
+def cargar_datos_archivo():
+    """Carga los registros usando split('|') y los guarda en la memoria RAM."""
+    comprobantes = []
+
+    if not os.path.exists(NOMBRE_ARCHIVO):
+        print(
+            " [Info] Archivo de historial no encontrado. Se creará uno nuevo al guardar."
+        )
+        return comprobantes
+
+    with open(NOMBRE_ARCHIVO, "r", encoding="utf-8") as archivo:
+        for linea in archivo:
+            datos = linea.strip().split("|")
+            if len(datos) == 9:
+                comprobantes.append(
+                    {
+                        "nro_comp": datos[0],"tipo_comp": datos[1],"cliente": datos[2],"documento": datos[3],
+                        "telefono": datos[4], "servicio": datos[5],"monto": float(datos[6]), "fecha": datos[7],
+                        "hora": datos[8],
+                    }
+                )
+    print(
+        f" [Info] {len(comprobantes)} registro(s) recuperado(s) del archivo local."
+    )
+    return comprobantes
 # ==========================================
 # 3. SERVICIOS DEL SISTEMA
 # ==========================================
@@ -133,7 +184,7 @@ def servicio_construccion(comprobantes):
         "monto": monto_total, "fecha": fecha, "hora": hora
     }
     comprobantes.append(nuevo)
-    guardar_comprobantes(comprobantes)
+    guardar_datos_archivo(comprobantes)
     print(f"\n[Éxito] Comprobante {nro_comp} generado el {fecha} a las {hora}")
     print(f"        Total a pagar: S/ {monto_total:,.2f}")
 
@@ -161,7 +212,7 @@ def servicio_mantenimiento(comprobantes):
         "monto": monto_total, "fecha": fecha, "hora": hora
     }
     comprobantes.append(nuevo)
-    guardar_comprobantes(comprobantes)
+    guardar_datos_archivo(comprobantes)
     print(f"\n[Éxito] Comprobante {nro_comp} generado el {fecha} a las {hora}")
     print(f"        Total a pagar: S/ {monto_total:,.2f}")
 
@@ -213,12 +264,26 @@ def servicio_suministro(comprobantes):
             "monto": monto_total, "fecha": fecha, "hora": hora
         }
         comprobantes.append(nuevo)
-        guardar_comprobantes(comprobantes)
+        guardar_datos_archivo(comprobantes)
         print(f"\n[Éxito] Comprobante {nro_comp} generado el {fecha} a las {hora}")
         print(f"        Total a pagar: S/ {monto_total:,.2f}")
 # ==========================================
-# 4. CONFIGURACIÓN DE PRECIOS SIMPLIFICADA
+# 4. CONFIGURACIÓN DE PRECIOS Y CATÁLOGOS
 # ==========================================
+def pedir_precio_valido(mensaje):
+    """Solicita un precio y valida que sea solo números y mayor a 0."""
+    while True:
+        entrada = input(mensaje).strip()
+        try:
+            precio = float(entrada)
+            if precio > 0:
+                return precio
+            else:
+                print("  [Error] El precio debe ser mayor a 0.")
+        except ValueError:
+            print(
+                "  [Error] Entrada no válida. Ingrese solo números (ejemplo: 15.50)."
+            )
 def configurar_catalogos():
     print("\n--------------------------------------------------")
     print("       GESTOR DE PRECIOS DEL SISTEMA              ")
@@ -229,19 +294,31 @@ def configurar_catalogos():
     print("4. Regresar")
 
     opc = input("Seleccione (1-4): ").strip()
+    # Bucle de validación para el menú del gestor
+    while opc not in ["1", "2", "3", "4"]:      
+        print("  [Error] Opción no válida. Ingrese un número del 1 al 4.")
+        opc = input("Seleccione (1-4): ").strip()
 
-    if opc == "1":
-        nuevo_p = float(input("Nuevo precio x m² para Acabado Básico: S/ "))
+    if opc == "1":      
+        nuevo_p = pedir_precio_valido(
+            "Nuevo precio x m² para Acabado Básico: S/ "
+        )
         PRECIO_CONSTRUCCION["Básico"] = nuevo_p
         print("  [Éxito] Precio actualizado.")
+
     elif opc == "2":
-        nuevo_p = float(input("Nueva tarifa por hora: S/ "))
+        nuevo_p = pedir_precio_valido("Nueva tarifa por hora: S/ ")
         PRECIO_MANTENIMIENTO["Tarifa Hora"] = nuevo_p
         print("  [Éxito] Tarifa actualizada.")
+
     elif opc == "3":
-        nuevo_p = float(input("Nuevo precio Kit de Químicos: S/ "))
+        nuevo_p = pedir_precio_valido("Nuevo precio Kit de Químicos: S/ ")
         PRECIO_MANTENIMIENTO["Kit Quimicos"] = nuevo_p
         print("  [Éxito] Precio actualizado.")
+
+    elif opc == "4":
+        print("  Regresando al menú principal...")
+        return
 # ==========================================
 # 5. BÚSQUEDA Y REPORTES FÁCILES
 # ==========================================
@@ -276,6 +353,10 @@ def reporte_ventas(comprobantes):
     print("1. Ver todas las ventas")
     print("2. Filtrar ventas por fecha (AAAA-MM-DD)")
     opc = input("Seleccione (1-2): ").strip()
+    ## Validación de opción 1 o 2
+    while opc not in ["1", "2"]:
+        print("  [Error] Opción no válida. Por favor, ingrese 1 o 2.")
+        opc = input("Seleccione (1-2): ").strip()
 
     fecha_filtro = ""
     if opc == "2":
@@ -297,11 +378,11 @@ def reporte_ventas(comprobantes):
 # 6. MENÚ PRINCIPAL
 # ==========================================
 def main():
-    comprobantes = cargar_comprobantes()
+    comprobantes = cargar_datos_archivo()
 
     while True:
         print("\n" + "=" * 52)
-        print("         DH PROYECTOS CONTRATISTAS - BLUESYNC      ")
+        print("        DH PROYECTOS CONTRATISTAS - BLUESYNC      ")
         print("                    MENÚ PRINCIPAL                 ")
         print("=" * 52)
         print(" 1. Servicio de construcción")
@@ -310,10 +391,13 @@ def main():
         print(" 4. Configurar catálogos y precios")
         print(" 5. Buscar historial de comprobantes")
         print(" 6. Reportes de Ventas")
-        print(" 7. Salir")
+        print(" 7. Guardar datos en archivo")
+        print(" 8. Leer datos desde archivo")
+        print(" 9. Cargar datos desde archivo")
+        print(" 10. Salir")
         print("=" * 52)
 
-        opcion = input("Seleccione una opción (1-7): ").strip()
+        opcion = input("Seleccione una opción (1-10): ").strip()
 
         if opcion == "1":
             servicio_construccion(comprobantes)
@@ -328,10 +412,18 @@ def main():
         elif opcion == "6":
             reporte_ventas(comprobantes)
         elif opcion == "7":
-            guardar_comprobantes(comprobantes)
+            guardar_datos_archivo(comprobantes)
+        elif opcion == "8":
+            leer_datos_archivo()
+        elif opcion == "9":
+            comprobantes = cargar_datos_archivo()
+        elif opcion == "10":
+            guardar_datos_archivo(comprobantes)
             print("\n  ¡Gracias por utilizar el sistema BlueSync!")
             break
         else:
             print("  [Error] Opción no válida.")
+
+
 if __name__ == "__main__":
     main()
